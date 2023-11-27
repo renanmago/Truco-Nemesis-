@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truco Nemesis</title>
+</head>
+<body>
+    <h1>Truco Nemesis</h1>
+
+    <div id="teamNames">
+        <label for="team1Name">Dupla 1: </label>
+        <input type="text" id="team1Name" placeholder="Digite o nome da Dupla 1" onchange="updateTeamName(1)">
+        <br>
+        <label for="team2Name">Dupla 2: </label>
+        <input type="text" id="team2Name" placeholder="Digite o nome da Dupla 2" onchange="updateTeamName(2)">
+    </div>
+    
+    <div id="teams">
+        <div class="team" id="team1">
+            <h2 id="team1Title">Dupla 1</h2>
+            <p>Pontos: <span id="score1">0</span></p>
+            <p>Quedas: <span id="falls1">0</span></p>
+            <button onclick="addPoint(1)">+1 Ponto</button>
+            <button class="special" onclick="addSpecialPoints(1, 3)">Trucada (+3)</button>
+            <button class="special" onclick="addSpecialPoints(1, 6)">Seis!</button>
+            <button class="special" onclick="addSpecialPoints(1, 9)">Nove!</button>
+            <button class="special" onclick="addSpecialPoints(1, 12)">Doze!</button>
+        </div>
+        <div class="team" id="team2">
+            <h2 id="team2Title">Dupla 2</h2>
+            <p>Pontos: <span id="score2">0</span></p>
+            <p>Quedas: <span id="falls2">0</span></p>
+            <button onclick="addPoint(2)">+1 Ponto</button>
+            <button class="special" onclick="addSpecialPoints(2, 3)">Trucada (+3)</button>
+            <button class="special" onclick="addSpecialPoints(2, 6)">Seis!</button>
+            <button class="special" onclick="addSpecialPoints(2, 9)">Nove!</button>
+            <button class="special" onclick="addSpecialPoints(2, 12)">Doze!</button>
+        </div>
+    </div>
+    
+    <button onclick="resetScores()">Resetar Pontuações</button>
+
+    <div id="history">
+        <h2>Resultado da Rodada</h2>
+        <ul id="historyList"></ul>
+    </div>
+
+    <style>
+        body {
+        font-family: 'Arial', sans-serif;
+        background-color: black;
+        text-align: center;
+        padding: 20px;
+        margin: 0;
+        overflow: hidden;
+        overflow-y: auto; /* Adiciona uma barra de rolagem vertical quando necessário */
+        max-height: 100vh; /* Altura máxima da página */
+}
+
+        h1 {
+            color: #4CAF50;
+            font-family: Georgia, 'Times New Roman', Times, serif;
+        }
+
+        #teamNames {
+            color: white;
+            margin-bottom: 15px;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+
+        #teams {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            color: white;
+        }
+
+        .team {
+            background-color: black;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px black;
+        }
+
+        .team h2 {
+            margin-bottom: 5px;
+        }
+
+        .team p {
+            margin: 5px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+
+        button.trucada {
+            background-color: #4CAF50;
+            color: black;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #history {
+        margin-top: 30px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: white;
+        overflow-y: auto; /* Adiciona uma barra de rolagem vertical quando necessário */
+        max-height: 200px; /* Altura máxima da área de histórico */
+        margin-bottom: 20px; /* Adiciona uma margem inferior para criar espaço entre a última linha e a parte inferior da tela */
+}
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        button.special {
+            background-color: #4CAF50;
+            color: black;
+            border: none;
+            border-radius: 5px;
+        }
+
+        /* Adicione estilos para os campos de entrada de texto */
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 150px; /* Ajuste conforme necessário */
+        }
+
+        /* Estilos adicionais para melhorar a aparência em dispositivos móveis */
+        @media only screen and (max-width: 600px) {
+            input[type="text"] {
+                width: 100%; /* Faça os campos de entrada ocuparem 100% da largura em dispositivos móveis */
+            }
+        }
+
+        /* Estilos adicionais para lidar com campos de entrada específicos */
+        #teamNames input[type="text"] {
+            width: 200px; /* Ajuste conforme necessário */
+        }
+
+        
+
+    </style>
+
+    <script>
+        let scoreTeam1 = 0;
+let scoreTeam2 = 0;
+let fallsTeam1 = 0;
+let fallsTeam2 = 0;
+
+function addPoint(team) {
+    if (team === 1) {
+        scoreTeam1++;
+        document.getElementById('score1').innerText = scoreTeam1;
+        checkForWinner(1);
+        updateHistory(`Equipe ${teamNames[team]} marcou +1 ponto`);
+    } else if (team === 2) {
+        scoreTeam2++;
+        document.getElementById('score2').innerText = scoreTeam2;
+        checkForWinner(2);
+        updateHistory(`Equipe ${teamNames[team]} marcou +1 ponto`);
+    }
+}
+
+function addSpecialPoints(team, points) {
+    if (team === 1) {
+        scoreTeam1 += points;
+        document.getElementById('score1').innerText = scoreTeam1;
+        checkForWinner(1);
+        updateHistory(`Rodada Trucada (+${points}) para ${teamNames[team]}`);
+    } else if (team === 2) {
+        scoreTeam2 += points;
+        document.getElementById('score2').innerText = scoreTeam2;
+        checkForWinner(2);
+        updateHistory(`Rodada Trucada (+${points}) para ${teamNames[team]}`);
+    }
+}
+
+
+function checkForWinner(team) {
+    if (scoreTeam1 >= 12 || scoreTeam2 >= 12) {
+        alert(`A equipe ${teamNames[team]} venceu com ${scoreTeam1 >= 12 ? scoreTeam1 : scoreTeam2} pontos!`);
+        updateHistory(`A equipe ${teamNames[team]} venceu a rodada com ${scoreTeam1 >= 12 ? scoreTeam1 : scoreTeam2} pontos.`);
+        incrementFalls(team);
+        resetScores();
+    }
+}
+
+function resetScores() {
+    fallsTeam1 = 0;
+    fallsTeam2 = 0;
+    scoreTeam1 = 0;
+    scoreTeam2 = 0;
+    document.getElementById('score1').innerText = scoreTeam1;
+    document.getElementById('score2').innerText = scoreTeam2;
+    updateHistory('Pontuações resetadas');
+}
+
+function incrementFalls(winningTeam) {
+    if (winningTeam === 1) {
+        fallsTeam1++;
+        alert(`Equipe ${teamNames[winningTeam]} ganhou 1 queda!`);
+    } else if (winningTeam === 2) {
+        fallsTeam2++;
+        alert(`Equipe ${teamNames[winningTeam]} ganhou 1 queda!`);
+    }
+
+    // Atualize os contadores de queda na interface
+    document.getElementById('falls1').innerText = fallsTeam1;
+    document.getElementById('falls2').innerText = fallsTeam2;
+
+    // Adicione lógica adicional aqui se desejar.
+}
+
+
+
+        function updateHistory(entry) {
+            const historyList = document.getElementById('historyList');
+            const listItem = document.createElement('li');
+            listItem.innerText = entry;
+            historyList.appendChild(listItem);
+        }
+
+        function resetScores() {
+           
+            scoreTeam1 = 0;
+            scoreTeam2 = 0;
+            document.getElementById('score1').innerText = scoreTeam1;
+            document.getElementById('score2').innerText = scoreTeam2;
+            updateHistory('Pontuações resetadas');
+        }
+
+        // Adicione um objeto para armazenar os nomes das equipes
+        let teamNames = {
+            1: "Dupla 1",
+            2: "Dupla 2",
+        };
+
+        // Adicione a função para atualizar o nome da equipe
+        function updateTeamName(team) {
+            const inputElement = document.getElementById(`team${team}Name`);
+            const teamName = inputElement.value;
+
+            // Atualize o objeto de nomes das equipes
+            teamNames[team] = teamName;
+
+            // Atualize os títulos das equipes nas seções de pontuação
+            document.getElementById(`team${team}Title`).innerText = teamName;
+        }
+
+        document.getElementById('team1').addEventListener('click', function () {
+            activeTeam = 'team1';
+            updateTeamName(1);
+        });
+
+        document.getElementById('team2').addEventListener('click', function () {
+            activeTeam = 'team2';
+            updateTeamName(2);
+        });
+    </script>
+</html>
